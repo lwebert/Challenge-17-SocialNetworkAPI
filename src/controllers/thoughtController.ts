@@ -35,7 +35,7 @@ export const getThoughtById = async (req: Request, res: Response) => {
 };
 
 // POST Thought /thoughts
-export const createthought = async (req: Request, res: Response) => {
+export const createThought = async (req: Request, res: Response) => {
 	const { thought } = req.body;
 	try {
 		const newthought = await Thought.create({ thought });
@@ -46,7 +46,7 @@ export const createthought = async (req: Request, res: Response) => {
 };
 
 // PUT Thought /thoughts/:thoughtId
-export const updatethoughtById = async (req: Request, res: Response) => {
+export const updateThoughtById = async (req: Request, res: Response) => {
 	try {
 		const thought = await Thought.findOneAndUpdate(
 			{ _id: req.params.thoughtId },
@@ -67,7 +67,7 @@ export const updatethoughtById = async (req: Request, res: Response) => {
 };
 
 //TODO:  DELETE Thought /thoughts/:thoughtId
-export const deletethoughtById = async (req: Request, res: Response) => {
+export const deleteThoughtById = async (req: Request, res: Response) => {
 	try {
 		const thought = await Thought.findOneAndDelete({
 			_id: req.params.thoughtId,

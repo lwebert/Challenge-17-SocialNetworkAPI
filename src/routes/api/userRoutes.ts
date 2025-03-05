@@ -8,8 +8,8 @@ import {
 	createUser,
 	updateUserById,
 	deleteUserById,
-	addFriend,
-	removeFriend,
+	// addFriend,
+	// removeFriend,
 } from '../../controllers/userController';
 
 // Users: /api/users
@@ -23,9 +23,9 @@ router
 	.delete(deleteUserById);
 
 // Friends: /api/users/:userId/friends
-router.route('/:userId/friends/:friendId').post(addFriend);
+// router.route('/:userId/friends/:friendId').post(addFriend);
 
 // Friends: /api/users/:userId/friends/:friendId
-router.route('/:userId/friends/:friendId').delete(removeFriend);
+// router.route('/:userId/friends/:friendId').delete(removeFriend);
 
 export { router as userRouter };
