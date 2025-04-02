@@ -9,7 +9,7 @@ import {
 	updateThoughtById,
 	deleteThoughtById,
 	addReaction,
-	// removeReaction, //TODO:
+	removeReaction,
 } from '../../controllers/thoughtController.js';
 
 // Thoughts: /api/thoughts
@@ -26,7 +26,6 @@ router
 router.route('/:thoughtId/reactions').post(addReaction);
 
 // Reactions: /api/thoughts/:thoughtId/reactions/:reactionId
-//TODO:
-// router.route('/:thoughtId/reactions/:reactionId').delete(removeReaction);
+router.route('/:thoughtId/reactions/:reactionId').delete(removeReaction);
 
 export { router as thoughtRouter };

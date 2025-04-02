@@ -29,17 +29,31 @@ export const getThoughtById = async (req: Request, res: Response) => {
 
 // POST Thought /thoughts
 export const createThought = async (req: Request, res: Response) => {
-	const { thought } = req.body;
+	console.log('You are creating a new thought.');
 	try {
-		const newthought = await Thought.create({ thought });
-		res.status(201).json(newthought);
+		const { thoughtText, username } = req.body;
+
+		const user = await User.findOne({ name: username });
+		if (!user) {
+			return res
+				.status(404)
+				.json({ message: 'User with that username not found. ' });
+		}
+
+		const newthought = await Thought.create({
+			thoughtText,
+			username: user.name,
+			userId: user._id,
+		});
+		return res.status(201).json(newthought);
 	} catch (err: any) {
-		res.status(400).json({ message: err.message });
+		return res.status(400).json({ message: err.message });
 	}
 };
 
 // PUT Thought /thoughts/:thoughtId
 export const updateThoughtById = async (req: Request, res: Response) => {
+	console.log("Updating thought by it's ID.");
 	try {
 		const thought = await Thought.findOneAndUpdate(
 			{ _id: req.params.thoughtId },
@@ -49,7 +63,7 @@ export const updateThoughtById = async (req: Request, res: Response) => {
 
 		if (!thought) {
 			res.status(404).json({
-				message: 'No thought with this id exists. Cannot be updated.',
+				message: 'No thought with this ID exists. Cannot be updated.',
 			});
 		}
 
@@ -61,6 +75,7 @@ export const updateThoughtById = async (req: Request, res: Response) => {
 
 // DELETE Thought /thoughts/:thoughtId
 export const deleteThoughtById = async (req: Request, res: Response) => {
+	console.log("Deleting a thought by it's ID.");
 	try {
 		const thought = await Thought.findOneAndDelete({
 			_id: req.params.thoughtId,
@@ -93,7 +108,7 @@ export const deleteThoughtById = async (req: Request, res: Response) => {
 	}
 };
 
-// POST /thoughts/:thoughtId/reactions
+// POST Reaction /thoughts/:thoughtId/reactions
 export const addReaction = async (req: Request, res: Response) => {
 	console.log('You are adding a reaction to a thought.');
 
@@ -102,58 +117,46 @@ export const addReaction = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const thought = await Thought.findById(req.params.thoughtId);
+		// const thought = await Thought.findById(req.params.thoughtId);
 
-		if (!thought) {
-			return res.status(404).json({
-				message:
-					'No thought found with that ID. Could not add reaction.',
-			});
-		}
+		// if (!thought) {
+		// 	return res.status(404).json({
+		// 		message:
+		// 			'No thought found with that ID. Could not add reaction.',
+		// 	});
+		// }
 
 		const updatedThought = await Thought.findOneAndUpdate(
 			{ _id: req.params.thoughtId },
 			{
 				$addToSet: {
 					reactions: {
-						reactionBody: req.body,
-						username: thought.username,
+						reactionBody: req.body.reactionBody,
+						username: req.body.username,
+						// username: thought.username,
 					},
 				},
 			},
 			{ runValidators: true, new: true }
 		);
 
+		if (!updatedThought) {
+			return res.status(404).json({
+				message:
+					'No thought found with that ID. Could not add reaction.',
+			});
+		}
+
 		return res.json(updatedThought);
 	} catch (err: any) {
 		return res.status(500).json({ message: err.message });
 	}
-
-	// const { thoughtId } = req.params;
-	// const { reactionBody } = req.body;
-
-	// const thought = await Thought.findById(thoughtId).populate('username');
-
-	// if (!thought) {
-	// 	return res.status(404).json({
-	// 		message:
-	// 			'No thought found with that ID. Could not add reaction.',
-	// 	});
-	// }
-
-	// const reaction = {
-	// 	reactionBody,
-	// 	username: thought.username,
-	// 	createdAt: new Date(),
-	// };
-
-	// thought.reactions.push(reaction);
-
-	// return res.json(thought);
 };
 
 // DELETE /thoughts/:thoughtId/reactions/:reactionId
 export const removeReaction = async (req: Request, res: Response) => {
+	console.log('You are deleting a reaction to a thought.');
+
 	try {
 		const thought = await Thought.findOneAndUpdate(
 			{ _id: req.params.thoughtId },

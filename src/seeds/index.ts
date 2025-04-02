@@ -40,7 +40,7 @@ connection.once('open', async () => {
 		const email = `${username}@email.com`;
 
 		//Make 4 thoughts associated to the user (each with 2 reactions)
-		const thoughtsData = getRandomThoughts(4);
+		const thoughtsData = getRandomThoughts(2);
 		const updatedThoughts = thoughtsData.map((thought) => ({
 			...thought,
 			username: username,
