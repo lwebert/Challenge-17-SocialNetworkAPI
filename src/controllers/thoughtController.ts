@@ -1,15 +1,10 @@
 import { Request, Response } from 'express';
-// import { ObjectId } from 'mongodb'; //for aggregate functions... not sure if need
 import { User, Thought } from '../models/index.js';
 
 // GET All Thoughts /Thoughts
 export const getAllThoughts = async (_req: Request, res: Response) => {
 	try {
-		let thoughts = await Thought.find();
-
-		//TODO: Create a virtual called reactionCount that retrieves the length of the thought's reactions array field on query.
-		// const thoughtsObj = {...thoughts, Thought.reactionCount }
-
+		const thoughts = await Thought.find().populate('reactions');
 		res.json(thoughts);
 	} catch (err: any) {
 		res.status(500).json({ message: err.message });
@@ -20,12 +15,10 @@ export const getAllThoughts = async (_req: Request, res: Response) => {
 export const getThoughtById = async (req: Request, res: Response) => {
 	const { thoughtId } = req.params;
 	try {
-		const thought = await Thought.findById(thoughtId);
+		const thought = await Thought.findById(thoughtId).populate('reactions');
 
 		if (thought) {
 			res.json(thought);
-			//TODO: Create a virtual called reactionCount that retrieves the length of the thought's reactions array field on query.
-			// res.json( { thought, reactionCount: Thought.reactionCount })
 		} else {
 			res.status(404).json({ message: 'Thought not found.' });
 		}
@@ -51,7 +44,7 @@ export const updateThoughtById = async (req: Request, res: Response) => {
 		const thought = await Thought.findOneAndUpdate(
 			{ _id: req.params.thoughtId },
 			{ $set: req.body },
-			{ runValidators: true, new: true } //TODO: What does this do?
+			{ runValidators: true, new: true }
 		);
 
 		if (!thought) {
@@ -66,7 +59,7 @@ export const updateThoughtById = async (req: Request, res: Response) => {
 	}
 };
 
-//TODO:  DELETE Thought /thoughts/:thoughtId
+// DELETE Thought /thoughts/:thoughtId
 export const deleteThoughtById = async (req: Request, res: Response) => {
 	try {
 		const thought = await Thought.findOneAndDelete({
@@ -82,7 +75,7 @@ export const deleteThoughtById = async (req: Request, res: Response) => {
 		const user = await User.findOneAndUpdate(
 			{ thoughts: req.params.thoughtId },
 			{ $pull: { thoughts: req.params.thoughtId } },
-			{ new: true } //TODO: What does this do?
+			{ new: true }
 		);
 
 		if (!user) {
@@ -96,35 +89,87 @@ export const deleteThoughtById = async (req: Request, res: Response) => {
 				'Thought successfully deleted and removed from associated user.',
 		});
 	} catch (err: any) {
-		res.status(500).json({ message: err.message });
+		return res.status(500).json({ message: err.message });
 	}
 };
 
-//TODO: addReaction,
 // POST /thoughts/:thoughtId/reactions
 export const addReaction = async (req: Request, res: Response) => {
 	console.log('You are adding a reaction to a thought.');
-	console.log(req.body);
+
+	if (!req.body.reactionBody) {
+		return res.status(400).json({ message: 'Reaction body is required.' });
+	}
 
 	try {
+		const thought = await Thought.findById(req.params.thoughtId);
+
+		if (!thought) {
+			return res.status(404).json({
+				message:
+					'No thought found with that ID. Could not add reaction.',
+			});
+		}
+
+		const updatedThought = await Thought.findOneAndUpdate(
+			{ _id: req.params.thoughtId },
+			{
+				$addToSet: {
+					reactions: {
+						reactionBody: req.body,
+						username: thought.username,
+					},
+				},
+			},
+			{ runValidators: true, new: true }
+		);
+
+		return res.json(updatedThought);
+	} catch (err: any) {
+		return res.status(500).json({ message: err.message });
+	}
+
+	// const { thoughtId } = req.params;
+	// const { reactionBody } = req.body;
+
+	// const thought = await Thought.findById(thoughtId).populate('username');
+
+	// if (!thought) {
+	// 	return res.status(404).json({
+	// 		message:
+	// 			'No thought found with that ID. Could not add reaction.',
+	// 	});
+	// }
+
+	// const reaction = {
+	// 	reactionBody,
+	// 	username: thought.username,
+	// 	createdAt: new Date(),
+	// };
+
+	// thought.reactions.push(reaction);
+
+	// return res.json(thought);
+};
+
+// DELETE /thoughts/:thoughtId/reactions/:reactionId
+export const removeReaction = async (req: Request, res: Response) => {
+	try {
 		const thought = await Thought.findOneAndUpdate(
-			{ thoughts: req.params.thoughtId },
-			{ $addToSet: { reactions: req.body } },
-			{ runValidators: true, new: true } //TODO: What do these to?
+			{ _id: req.params.thoughtId },
+			{ $pull: { reactions: { reactionId: req.params.reactionId } } },
+			{ runValidators: true, new: true }
 		);
 
 		if (!thought) {
-			return res
-				.status(404)
-				.json({ message: 'No thought found with that ID. Could not add reaction.' });
+			return res.status(404).json({
+				message:
+					'No thought found with that ID, could not delete reaction.',
+			});
 		}
 
 		return res.json(thought);
 	} catch (err: any) {
-		res.status(500).json({ message: err.message });
+		return res.status(500).json({ message: err.message });
 	}
 };
-
-//TODO: removeReaction,
-// DELETE /thoughts/:thoughtId/reactions/:reactionId
-

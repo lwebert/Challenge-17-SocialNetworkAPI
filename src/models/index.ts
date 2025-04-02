@@ -1,4 +1,4 @@
-import User from './User';
-import Thought from './Thought';
+import User from './User.js';
+import Thought, {reactionSchema} from './Thought.js';
 
-export { User, Thought };
+export { User, Thought, reactionSchema };

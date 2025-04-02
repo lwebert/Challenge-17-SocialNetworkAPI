@@ -31,32 +31,42 @@ const reactionSchema = new Schema<IReaction>(
 		},
 		createdAt: {
 			type: Date,
-			default: Date.now(),
+			default: Date.now,
 		},
 	},
 	{
+		toJSON: {
+			getters: true,
+		},
 		timestamps: true,
 		_id: false,
 	}
 );
 
-const thoughtSchema = new Schema<IThought>({
-	thoughtText: {
-		type: String,
-		required: true,
-		minlength: 1,
-		maxlength: 280,
+const thoughtSchema = new Schema<IThought>(
+	{
+		thoughtText: {
+			type: String,
+			required: true,
+			minlength: 1,
+			maxlength: 280,
+		},
+		createdAt: {
+			type: Date,
+			default: Date.now,
+		},
+		username: {
+			type: String,
+			required: true,
+		},
+		reactions: [reactionSchema],
 	},
-	createdAt: {
-		type: Date,
-		default: Date.now(),
-	},
-	username: {
-		type: String,
-		required: true,
-	},
-	reactions: [reactionSchema],
-});
+	{
+		toJSON: {
+			virtuals: true,
+		},
+	}
+);
 
 //TODO: Create a virtual called reactionCount that retrieves the length of the thought's reactions array field on query.
 thoughtSchema.virtual('reactionCount').get(function () {
@@ -66,3 +76,4 @@ thoughtSchema.virtual('reactionCount').get(function () {
 const Thought = model('thought', thoughtSchema);
 
 export default Thought;
+export { reactionSchema };

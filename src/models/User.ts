@@ -19,6 +19,7 @@ const userSchema = new Schema<IUser>(
 			type: String,
 			required: true,
 			unique: true,
+			match: /.+@.+\..+/
 			//TODO: Add Mongoose matching validation - must match a valid email address
 		},
 		thoughts: [
