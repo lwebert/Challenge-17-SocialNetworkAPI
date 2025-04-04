@@ -40,12 +40,16 @@ export const createThought = async (req: Request, res: Response) => {
 				.json({ message: 'User with that username not found. ' });
 		}
 
-		const newthought = await Thought.create({
+		const newThought = await Thought.create({
 			thoughtText,
 			username: user.name,
 			userId: user._id,
 		});
-		return res.status(201).json(newthought);
+
+		user.thoughts.push(newThought.id);
+		await user.save();
+
+		return res.status(201).json(newThought);
 	} catch (err: any) {
 		return res.status(400).json({ message: err.message });
 	}
@@ -117,15 +121,6 @@ export const addReaction = async (req: Request, res: Response) => {
 	}
 
 	try {
-		// const thought = await Thought.findById(req.params.thoughtId);
-
-		// if (!thought) {
-		// 	return res.status(404).json({
-		// 		message:
-		// 			'No thought found with that ID. Could not add reaction.',
-		// 	});
-		// }
-
 		const updatedThought = await Thought.findOneAndUpdate(
 			{ _id: req.params.thoughtId },
 			{
@@ -147,6 +142,7 @@ export const addReaction = async (req: Request, res: Response) => {
 			});
 		}
 
+		console.log(`Reaction successfully added to thought.`);
 		return res.json(updatedThought);
 	} catch (err: any) {
 		return res.status(500).json({ message: err.message });
@@ -171,6 +167,7 @@ export const removeReaction = async (req: Request, res: Response) => {
 			});
 		}
 
+		console.log(`Reaction successfully removed from thought.`);
 		return res.json(thought);
 	} catch (err: any) {
 		return res.status(500).json({ message: err.message });

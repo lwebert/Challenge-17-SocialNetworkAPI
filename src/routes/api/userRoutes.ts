@@ -9,7 +9,7 @@ import {
 	updateUserById,
 	deleteUserById,
 	addFriend,
-	// removeFriend,
+	removeFriend,
 } from '../../controllers/userController.js';
 
 // Users: /api/users
@@ -26,6 +26,6 @@ router
 router.route('/:userId/friends').post(addFriend);
 
 // Friends: /api/users/:userId/friends/:friendId
-// router.route('/:userId/friends/:friendId').delete(removeFriend);
+router.route('/:userId/friends/:friendId').delete(removeFriend);
 
 export { router as userRouter };

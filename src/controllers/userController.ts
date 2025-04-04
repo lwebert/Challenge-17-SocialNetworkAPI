@@ -5,7 +5,9 @@ import { User, Thought } from '../models/index.js';
 export const getAllUsers = async (_req: Request, res: Response) => {
 	console.log('Getting all users.');
 	try {
-		const users = await User.find().populate('thoughts');
+		const users = await User.find()
+			.populate('thoughts')
+			.populate('friends');
 		res.json(users);
 	} catch (err: any) {
 		res.status(500).json({ message: err.message });
@@ -17,7 +19,9 @@ export const getUserById = async (req: Request, res: Response) => {
 	console.log('Getting one user by their user ID.');
 	const { userId } = req.params;
 	try {
-		const user = await User.findById(userId).populate('thoughts');
+		const user = await User.findById(userId)
+			.populate('thoughts')
+			.populate('friends');
 
 		if (user) {
 			res.json(user);
@@ -35,6 +39,7 @@ export const createUser = async (req: Request, res: Response) => {
 	try {
 		const { name, email } = req.body;
 		const newUser = await User.create({ name, email });
+
 		res.status(201).json(newUser);
 	} catch (err: any) {
 		res.status(400).json({ message: err.message });
@@ -80,7 +85,6 @@ export const deleteUserById = async (req: Request, res: Response) => {
 	}
 };
 
-//TODO: addFriend
 // POST Friend /api/users/:userId/friends
 export const addFriend = async (req: Request, res: Response) => {
 	console.log('You are adding a friend to a user.');
@@ -92,7 +96,7 @@ export const addFriend = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const friend = await User.findOne({ name: req.params.name });
+		const friend = await User.findOne({ name: req.body.name });
 
 		if (!friend) {
 			return res.status(404).json({
@@ -114,10 +118,42 @@ export const addFriend = async (req: Request, res: Response) => {
 			},
 			{ runValidators: true, new: true }
 		);
+
+		if (!updatedUser) {
+			return res.status(404).json({
+				message: 'No user found with that ID. Could not add friend.',
+			});
+		}
+
+		console.log(
+			`Successfully added friend ${req.body.name} to user ${updatedUser.name}.`
+		);
+		return res.json(updatedUser);
 	} catch (err: any) {
 		return res.status(500).json({ message: err.message });
 	}
 };
 
-//TODO: removeFriend,
 // DELETE Friend /api/users/:userId/friends/:friendId
+export const removeFriend = async (req: Request, res: Response) => {
+	console.log('You are removing a friend from a user.');
+
+	try {
+		const user = await User.findOneAndUpdate(
+			{ _id: req.params.userId },
+			{ $pull: { friends: req.params.friendId } },
+			{ new: true }
+		);
+
+		if (!user) {
+			return res.status(404).json({
+				message: 'No user found with that ID, could not delete friend.',
+			});
+		}
+
+		console.log(`Friend successfully removed from user ${user.name}`);
+		return res.json(user);
+	} catch (err: any) {
+		return res.status(500).json({ message: err.message });
+	}
+};
